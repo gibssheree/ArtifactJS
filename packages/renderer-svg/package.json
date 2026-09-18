@@ -1,0 +1,28 @@
+{
+  "name": "@interactive-artifact/renderer-svg",
+  "version": "0.1.0",
+  "description": "High-performance interactive SVG renderer for declarative AI artifacts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@interactive-artifact/protocol": "workspace:*",
+    "@interactive-artifact/core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.7"
+  }
+}

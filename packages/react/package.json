@@ -1,0 +1,38 @@
+{
+  "name": "@interactive-artifact/react",
+  "version": "0.1.0",
+  "description": "Thin React adapter and hooks for the interactive artifact runtime",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "@interactive-artifact/protocol": "workspace:*",
+    "@interactive-artifact/core": "workspace:*",
+    "@interactive-artifact/registry": "workspace:*",
+    "@interactive-artifact/renderer-svg": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.7"
+  }
+}
