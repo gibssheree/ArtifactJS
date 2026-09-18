@@ -1,49 +1,85 @@
-* {
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
-body {
+html, body {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: #0f172a;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #030712;
   color: #f8fafc;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
+/* Base typography & controls */
 button {
   cursor: pointer;
   border: none;
   border-radius: 6px;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   transition: all 0.15s ease;
 }
 
 button:hover {
-  opacity: 0.9;
+  opacity: 0.92;
+}
+
+button:active {
+  transform: scale(0.98);
 }
 
 select {
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12px;
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 5px 8px;
   background: #1e293b;
   color: #f8fafc;
   border: 1px solid #334155;
   outline: none;
 }
 
+select:focus {
+  border-color: #3b82f6;
+}
+
+input[type="text"], input[type="number"] {
+  font-family: inherit;
+  font-size: 12px;
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: #0f172a;
+  color: #f8fafc;
+  border: 1px solid #334155;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+input[type="text"]:focus, input[type="number"]:focus {
+  border-color: #3b82f6;
+}
+
 textarea {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   line-height: 1.5;
-  background: #0b1120;
+  background: #090d16;
   color: #38bdf8;
   border: 1px solid #1e293b;
-  border-radius: 6px;
+  border-radius: 0;
   padding: 12px;
   resize: none;
   outline: none;
@@ -56,7 +92,7 @@ textarea {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #090d16;
 }
 ::-webkit-scrollbar-thumb {
   background: #334155;
@@ -64,4 +100,179 @@ textarea {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
+}
+
+/* Playground IDE Layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #030712;
+}
+
+/* Top Navbar */
+.top-navbar {
+  height: 52px;
+  padding: 0 16px;
+  background: #0f172a;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  user-select: none;
+  z-index: 20;
+}
+
+.brand-badge {
+  background: linear-gradient(135deg, #2563eb, #4f46e5, #7c3aed);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: -0.02em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.brand-pill {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(30, 58, 138, 0.4);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* 3-Pane Workspace */
+.workspace-3pane {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  height: calc(100vh - 52px);
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Left Pane: JSON Editor */
+.pane-left {
+  width: 380px;
+  min-width: 320px;
+  max-width: 480px;
+  flex-shrink: 0;
+  height: 100%;
+  border-right: 1px solid #1e293b;
+  background: #090d16;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Center Pane: Interactive Canvas */
+.pane-center {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  position: relative;
+  background: #030712;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Right Pane: Deep Inspector */
+.pane-right {
+  width: 400px;
+  min-width: 350px;
+  max-width: 520px;
+  flex-shrink: 0;
+  height: 100%;
+  border-left: 1px solid #1e293b;
+  background: #0f172a;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Floating Viewport HUD in Center Canvas */
+.viewport-hud {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 11px;
+  color: #94a3b8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  user-select: none;
+}
+
+.viewport-hud strong {
+  color: #f8fafc;
+}
+
+.viewport-hud .bullet {
+  color: #475569;
+}
+
+.viewport-hud .instructions {
+  color: #38bdf8;
+}
+
+/* Inspector Tabs Bar */
+.inspector-tab-bar {
+  height: 42px;
+  padding: 0 6px;
+  background: #090d16;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.inspector-tab-btn {
+  padding: 5px 9px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #94a3b8;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.inspector-tab-btn:hover {
+  color: #f1f5f9;
+  background: rgba(30, 41, 59, 0.5);
+}
+
+.inspector-tab-btn.active {
+  background: #1e293b;
+  color: #38bdf8;
+  font-weight: 600;
+  border-color: #334155;
+}
+
+.inspector-tab-body {
+  flex: 1;
+  height: calc(100% - 42px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }

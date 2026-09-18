@@ -15,8 +15,8 @@ export const EntityInspector: React.FC<EntityInspectorProps> = ({
 }) => {
   if (!artifact || !selectedId) {
     return (
-      <div className="p-6 text-center text-xs text-slate-500">
-        <div className="text-2xl mb-2">??</div>
+      <div style={{ padding: 24, textAlign: "center", fontSize: 12, color: "#64748b" }}>
+        <div style={{ fontSize: 24, marginBottom: 8 }}>🔍</div>
         Select a node, port, or micro-component to inspect and mutate its properties live.
       </div>
     );
@@ -27,7 +27,7 @@ export const EntityInspector: React.FC<EntityInspectorProps> = ({
 
   if (!entity) {
     return (
-      <div className="p-4 text-xs text-amber-400">
+      <div style={{ padding: 16, fontSize: 12, color: "#fbbf24" }}>
         Entity "{selectedId}" not found in current component tree.
       </div>
     );
@@ -81,19 +81,39 @@ export const EntityInspector: React.FC<EntityInspectorProps> = ({
   };
 
   return (
-    <div className="p-4 space-y-4 text-xs select-none">
-      <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-slate-200">
+    <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 16, fontSize: 12, userSelect: "none" }}>
+      {/* Header bar */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingBottom: 8,
+        borderBottom: "1px solid #1e293b"
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontWeight: 600, color: "#f1f5f9" }}>
             {isNode ? "Structured Node" : isPort ? "Typed Port" : "Micro Component"}
           </span>
-          <span className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-slate-400">
+          <span style={{
+            padding: "2px 6px",
+            borderRadius: 4,
+            background: "#1e293b",
+            fontSize: 11,
+            fontFamily: "monospace",
+            color: "#94a3b8"
+          }}>
             {selectedId}
           </span>
         </div>
         <button
           onClick={onClear}
-          className="text-slate-400 hover:text-slate-200 text-xs px-1.5 py-0.5 rounded hover:bg-slate-800"
+          style={{
+            color: "#94a3b8",
+            background: "transparent",
+            fontSize: 11,
+            padding: "2px 6px",
+            borderRadius: 4
+          }}
         >
           Clear
         </button>
@@ -101,33 +121,39 @@ export const EntityInspector: React.FC<EntityInspectorProps> = ({
 
       {/* Node In-Place Editor */}
       {node && (
-        <div className="space-y-3">
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div>
-            <label className="block text-[11px] font-medium text-slate-400 mb-1">Header Title</label>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#94a3b8", marginBottom: 4 }}>
+              Header Title
+            </label>
             <input
               type="text"
               value={titleInput}
               onChange={e => setTitleInput(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1.5 text-slate-200 text-xs focus:outline-none focus:border-blue-500"
+              style={{ width: "100%", boxSizing: "border-box" }}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <div>
-              <label className="block text-[11px] font-medium text-slate-400 mb-1">Badge Tag</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#94a3b8", marginBottom: 4 }}>
+                Badge Tag
+              </label>
               <input
                 type="text"
                 value={badgeInput}
                 onChange={e => setBadgeInput(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1.5 text-slate-200 text-xs focus:outline-none focus:border-blue-500"
+                style={{ width: "100%", boxSizing: "border-box" }}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-slate-400 mb-1">Status</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#94a3b8", marginBottom: 4 }}>
+                Status
+              </label>
               <select
                 value={statusSelect}
                 onChange={e => setStatusSelect(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-slate-200 text-xs focus:outline-none focus:border-blue-500"
+                style={{ width: "100%", boxSizing: "border-box" }}
               >
                 <option value="active">Active</option>
                 <option value="success">Success</option>
@@ -140,23 +166,38 @@ export const EntityInspector: React.FC<EntityInspectorProps> = ({
 
           <button
             onClick={handleUpdateNodeHeader}
-            className="w-full py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded transition-colors"
+            style={{
+              width: "100%",
+              padding: "7px 0",
+              background: "#2563eb",
+              color: "#ffffff",
+              fontWeight: 600,
+              borderRadius: 6
+            }}
           >
             Apply In-Place Mutation
           </button>
 
-          <div className="pt-2 border-t border-slate-800 text-[11px] space-y-1 text-slate-400">
-            <div className="flex justify-between">
+          <div style={{
+            paddingTop: 8,
+            borderTop: "1px solid #1e293b",
+            fontSize: 11,
+            color: "#94a3b8",
+            display: "flex",
+            flexDirection: "column",
+            gap: 4
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span>Position:</span>
-              <span className="font-mono text-slate-300">({node.position.x}, {node.position.y})</span>
+              <span style={{ fontFamily: "monospace", color: "#cbd5e1" }}>({node.position.x}, {node.position.y})</span>
             </div>
-            <div className="flex justify-between">
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span>Size:</span>
-              <span className="font-mono text-slate-300">{node.size.width} ? {node.size.height}</span>
+              <span style={{ fontFamily: "monospace", color: "#cbd5e1" }}>{node.size.width} × {node.size.height}</span>
             </div>
-            <div className="flex justify-between">
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span>Ports:</span>
-              <span className="font-mono text-slate-300">{node.ports?.length ?? 0}</span>
+              <span style={{ fontFamily: "monospace", color: "#cbd5e1" }}>{node.ports?.length ?? 0}</span>
             </div>
           </div>
         </div>
@@ -164,27 +205,45 @@ export const EntityInspector: React.FC<EntityInspectorProps> = ({
 
       {/* MicroComponent Editor */}
       {comp && (
-        <div className="space-y-3">
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div>
-            <label className="block text-[11px] font-medium text-slate-400 mb-1">Component Type</label>
-            <div className="px-2.5 py-1.5 bg-slate-800 rounded font-mono text-indigo-300 text-xs">
+            <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#94a3b8", marginBottom: 4 }}>
+              Component Type
+            </label>
+            <div style={{
+              padding: "6px 10px",
+              background: "#1e293b",
+              borderRadius: 6,
+              fontFamily: "monospace",
+              color: "#a5b4fc",
+              fontSize: 12
+            }}>
               {comp.type}
             </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-400 mb-1">Label / Text</label>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#94a3b8", marginBottom: 4 }}>
+              Label / Text
+            </label>
             <input
               type="text"
               value={titleInput}
               onChange={e => setTitleInput(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1.5 text-slate-200 text-xs focus:outline-none focus:border-blue-500"
+              style={{ width: "100%", boxSizing: "border-box" }}
             />
           </div>
 
           <button
             onClick={handleUpdateComp}
-            className="w-full py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded transition-colors"
+            style={{
+              width: "100%",
+              padding: "7px 0",
+              background: "#4f46e5",
+              color: "#ffffff",
+              fontWeight: 600,
+              borderRadius: 6
+            }}
           >
             Update Micro-Component
           </button>
@@ -193,30 +252,42 @@ export const EntityInspector: React.FC<EntityInspectorProps> = ({
 
       {/* Port Inspector */}
       {port && (
-        <div className="space-y-2 text-[11px] text-slate-400">
-          <div className="flex justify-between">
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 11, color: "#94a3b8" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Direction:</span>
-            <span className="font-semibold text-emerald-400 uppercase">{port.direction}</span>
+            <span style={{ fontWeight: 600, color: "#34d399", textTransform: "uppercase" }}>{port.direction}</span>
           </div>
-          <div className="flex justify-between">
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Position Anchor:</span>
-            <span className="font-mono text-slate-300">{String(port.position)}</span>
+            <span style={{ fontFamily: "monospace", color: "#cbd5e1" }}>{String(port.position)}</span>
           </div>
-          <div className="flex justify-between">
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Data Type:</span>
-            <span className="font-mono text-slate-300">{port.dataType ?? "any"}</span>
+            <span style={{ fontFamily: "monospace", color: "#cbd5e1" }}>{port.dataType ?? "any"}</span>
           </div>
-          <div className="flex justify-between">
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span>Owner Node:</span>
-            <span className="font-mono text-blue-400">{port.nodeId}</span>
+            <span style={{ fontFamily: "monospace", color: "#60a5fa" }}>{port.nodeId}</span>
           </div>
         </div>
       )}
 
       {/* Raw JSON inspection */}
-      <div className="pt-2 border-t border-slate-800">
-        <label className="block text-[10px] font-mono text-slate-500 mb-1">RAW ENTITY JSON</label>
-        <pre className="p-2 bg-slate-950 rounded text-[10px] font-mono text-slate-300 max-h-48 overflow-auto">
+      <div style={{ paddingTop: 8, borderTop: "1px solid #1e293b" }}>
+        <label style={{ display: "block", fontSize: 10, fontFamily: "monospace", color: "#64748b", marginBottom: 4 }}>
+          RAW ENTITY JSON
+        </label>
+        <pre style={{
+          padding: 8,
+          background: "#090d16",
+          borderRadius: 6,
+          fontSize: 10,
+          fontFamily: "JetBrains Mono, monospace",
+          color: "#cbd5e1",
+          maxHeight: 180,
+          overflow: "auto",
+          margin: 0
+        }}>
           {JSON.stringify(entity, null, 2)}
         </pre>
       </div>

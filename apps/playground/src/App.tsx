@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { ArtifactRuntime, ArtifactInstance } from "@interactive-artifact/core";
 import { ArtifactRegistry } from "@interactive-artifact/registry";
 import { SVGRenderer } from "@interactive-artifact/renderer-svg";
@@ -19,7 +19,7 @@ import { PatchSimulator } from "./components/PatchSimulator.js";
 import { ComponentTreeInspector } from "./components/ComponentTreeInspector.js";
 import { EntityInspector } from "./components/EntityInspector.js";
 
-// Initialize singleton registry and runtime with all 10+ capabilities
+// Initialize singleton registry and runtime with all capabilities
 const registry = new ArtifactRegistry();
 registry.register(flowchartCapability);
 registry.register(excalidrawCapability);
@@ -135,28 +135,28 @@ export const App: React.FC = () => {
 
   return (
     <ArtifactProvider runtime={runtime} registry={registry} defaultRenderer={svgRenderer}>
-      <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
+      <div className="app-container">
         {/* Top Navbar */}
-        <header className="h-14 px-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between shrink-0 select-none">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white px-2.5 py-1 rounded-md font-bold text-sm tracking-tight shadow">
+        <header className="top-navbar">
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div className="brand-badge">
               ArtifactsJS
             </div>
-            <span className="text-xs text-slate-400 font-medium hidden sm:inline">
+            <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 500 }}>
               Interactive Runtime IDE
             </span>
-            <span className="text-[11px] px-2 py-0.5 rounded bg-blue-950 border border-blue-800/60 text-blue-300 font-mono">
+            <span className="brand-pill">
               Composite Architecture
             </span>
           </div>
 
           {/* Quick Controls Bar */}
-          <div className="flex items-center gap-2 text-xs">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}>
             {/* Category Filter */}
             <select
               value={selectedCategory}
               onChange={e => setSelectedCategory(e.target.value)}
-              className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs focus:outline-none"
+              title="Filter by Category"
             >
               {categories.map(c => (
                 <option key={c} value={c}>{c}</option>
@@ -167,7 +167,8 @@ export const App: React.FC = () => {
             <select
               value={selectedPresetId}
               onChange={e => handleSelectPreset(e.target.value)}
-              className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs max-w-xs focus:outline-none font-medium"
+              style={{ fontWeight: 600, maxWidth: 280 }}
+              title="Select Capability Preset"
             >
               {filteredPresets.map(p => (
                 <option key={p.id} value={p.id}>
@@ -180,7 +181,7 @@ export const App: React.FC = () => {
             <select
               value={(artifactInstance.state.get("theme") as string) ?? "neutral"}
               onChange={e => handleThemeChange(e.target.value as ThemeMode)}
-              className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs focus:outline-none"
+              title="Theme Mode"
             >
               <option value="neutral">Neutral</option>
               <option value="light">Light</option>
@@ -189,7 +190,7 @@ export const App: React.FC = () => {
 
             <button
               onClick={handleResetView}
-              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700/60 transition-colors"
+              style={{ background: "#1e293b", color: "#cbd5e1", border: "1px solid #334155", padding: "5px 10px" }}
               title="Reset Zoom & Pan"
             >
               Reset View
@@ -197,14 +198,14 @@ export const App: React.FC = () => {
 
             <button
               onClick={handleResetArtifact}
-              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700/60 transition-colors"
+              style={{ background: "#1e293b", color: "#cbd5e1", border: "1px solid #334155", padding: "5px 10px" }}
             >
               Reset
             </button>
 
             <button
               onClick={handleExportJson}
-              className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded shadow transition-colors"
+              style={{ background: "#2563eb", color: "#ffffff", padding: "5px 12px", fontWeight: 600 }}
             >
               Export JSON
             </button>
@@ -212,92 +213,82 @@ export const App: React.FC = () => {
         </header>
 
         {/* Main 3-Pane Workspace */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* PANE 1 (LEFT): Declarative JSON Editor & Preset Info */}
-          <div className="w-[30%] min-w-[320px] max-w-[460px] border-r border-slate-800 flex flex-col bg-slate-900/60">
+        <main className="workspace-3pane">
+          {/* PANE 1 (LEFT): Declarative JSON Editor */}
+          <section className="pane-left">
             <JsonEditor
               initialValue={currentDefinition}
               onChange={newDef => {
                 setCurrentDefinition(newDef);
               }}
             />
-          </div>
+          </section>
 
           {/* PANE 2 (CENTER): Live Interactive Canvas */}
-          <div className="flex-1 relative bg-slate-950 flex flex-col overflow-hidden">
+          <section className="pane-center">
             {/* Viewport indicators bar */}
-            <div className="absolute top-3 right-3 z-10 flex items-center gap-2 bg-slate-900/80 backdrop-blur border border-slate-800 px-3 py-1.5 rounded-lg text-[11px] text-slate-400 shadow-sm pointer-events-none select-none">
-              <span>Zoom: <strong className="text-slate-200">{Math.round(((liveState.zoom as number) || 1) * 100)}%</strong></span>
-              <span>?</span>
-              <span>Pan: <strong className="text-slate-200">{Math.round(((liveState.pan as any)?.x) || 0)}, {Math.round(((liveState.pan as any)?.y) || 0)}</strong></span>
-              <span>?</span>
-              <span className="text-sky-400">Wheel zoom ? Drag nodes ? Click ports & actions</span>
+            <div className="viewport-hud">
+              <span>Zoom: <strong>{Math.round(((liveState.zoom as number) || 1) * 100)}%</strong></span>
+              <span className="bullet">•</span>
+              <span>Pan: <strong>{Math.round(((liveState.pan as any)?.x) || 0)}, {Math.round(((liveState.pan as any)?.y) || 0)}</strong></span>
+              <span className="bullet">•</span>
+              <span className="instructions">Wheel zoom • Drag nodes • Click ports & actions</span>
             </div>
 
-            <ArtifactRenderer
-              artifact={artifactInstance}
-              renderer={svgRenderer}
-              onEvent={handleEvent}
-              style={{ width: "100%", height: "100%" }}
-            />
-          </div>
+            <div style={{ width: "100%", height: "100%", position: "relative" }}>
+              <ArtifactRenderer
+                artifact={artifactInstance}
+                renderer={svgRenderer}
+                onEvent={handleEvent}
+                style={{ width: "100%", height: "100%" }}
+              />
+            </div>
+          </section>
 
           {/* PANE 3 (RIGHT): Deep Inspector Panel */}
-          <div className="w-[28%] min-w-[340px] max-w-[460px] border-l border-slate-800 flex flex-col bg-slate-900/80">
+          <aside className="pane-right">
             {/* Inspector Tab Buttons */}
-            <div className="h-10 border-b border-slate-800 bg-slate-900 px-2 flex items-center gap-1 overflow-x-auto shrink-0 select-none">
+            <div className="inspector-tab-bar">
               <button
                 onClick={() => setActiveTab("tree")}
-                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                  activeTab === "tree" ? "bg-slate-800 text-blue-400 shadow-sm" : "text-slate-400 hover:text-slate-200"
-                }`}
+                className={`inspector-tab-btn ${activeTab === "tree" ? "active" : ""}`}
               >
-                ?? Tree
+                ☲ Tree
               </button>
               <button
                 onClick={() => setActiveTab("inspector")}
-                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                  activeTab === "inspector" ? "bg-slate-800 text-blue-400 shadow-sm" : "text-slate-400 hover:text-slate-200"
-                }`}
+                className={`inspector-tab-btn ${activeTab === "inspector" ? "active" : ""}`}
               >
-                ?? Entity
+                ⚙ Entity
               </button>
               <button
                 onClick={() => setActiveTab("ai_patch")}
-                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                  activeTab === "ai_patch" ? "bg-slate-800 text-blue-400 shadow-sm" : "text-slate-400 hover:text-slate-200"
-                }`}
+                className={`inspector-tab-btn ${activeTab === "ai_patch" ? "active" : ""}`}
               >
-                ?? AI Patch
+                ✦ AI Patch
               </button>
               <button
                 onClick={() => setActiveTab("state")}
-                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                  activeTab === "state" ? "bg-slate-800 text-blue-400 shadow-sm" : "text-slate-400 hover:text-slate-200"
-                }`}
+                className={`inspector-tab-btn ${activeTab === "state" ? "active" : ""}`}
               >
-                ? State
+                ◎ State
               </button>
               <button
                 onClick={() => setActiveTab("events")}
-                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                  activeTab === "events" ? "bg-slate-800 text-blue-400 shadow-sm" : "text-slate-400 hover:text-slate-200"
-                }`}
+                className={`inspector-tab-btn ${activeTab === "events" ? "active" : ""}`}
               >
-                ?? Events ({events.length})
+                ⚡ Events ({events.length})
               </button>
               <button
                 onClick={() => setActiveTab("capabilities")}
-                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                  activeTab === "capabilities" ? "bg-slate-800 text-blue-400 shadow-sm" : "text-slate-400 hover:text-slate-200"
-                }`}
+                className={`inspector-tab-btn ${activeTab === "capabilities" ? "active" : ""}`}
               >
-                ?? Catalog
+                ▦ Catalog
               </button>
             </div>
 
             {/* Tab Body */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="inspector-tab-body">
               {activeTab === "tree" && (
                 <ComponentTreeInspector
                   artifact={artifactInstance}
@@ -346,17 +337,17 @@ export const App: React.FC = () => {
               {activeTab === "capabilities" && (
                 <CapabilityExplorer
                   registry={registry}
-                  onSelectCapability={(cap) => {
-                    if (cap.sampleArtifact) {
-                      setCurrentDefinition(structuredClone(cap.sampleArtifact));
-                      setSelectedPresetId(cap.sampleArtifact.id);
+                  onSelectSample={(sample) => {
+                    if (sample) {
+                      setCurrentDefinition(structuredClone(sample));
+                      setSelectedPresetId(sample.id);
                     }
                   }}
                 />
               )}
             </div>
-          </div>
-        </div>
+          </aside>
+        </main>
       </div>
     </ArtifactProvider>
   );
