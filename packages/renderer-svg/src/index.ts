@@ -10,6 +10,7 @@ export {
 export * from "./gestures.js";
 export * from "./elements/shape.js";
 export * from "./elements/content.js";
+export * from "./elements/micro.js";
 export * from "./elements/node.js";
 export * from "./elements/connection.js";
 export * from "./elements/controls.js";

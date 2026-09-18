@@ -8,6 +8,7 @@ export class ReactiveState {
   private data = new Map<string, unknown>();
   private keyListeners = new Map<string, Set<StateListener<any>>>();
   private globalListeners = new Set<GlobalStateListener>();
+  private prefixListeners = new Map<string, Set<GlobalStateListener>>();
   private isBatching = false;
   private pendingChanges = new Map<string, { value: unknown; prev: unknown }>();
 
@@ -75,11 +76,60 @@ export class ReactiveState {
     };
   }
 
+  public subscribeScope(prefix: string, listener: GlobalStateListener): () => void {
+    let set = this.prefixListeners.get(prefix);
+    if (!set) {
+      set = new Set();
+      this.prefixListeners.set(prefix, set);
+    }
+    set.add(listener);
+
+    return () => {
+      set?.delete(listener);
+      if (set?.size === 0) {
+        this.prefixListeners.delete(prefix);
+      }
+    };
+  }
+
   public subscribeAll(listener: GlobalStateListener): () => void {
     this.globalListeners.add(listener);
     return () => {
       this.globalListeners.delete(listener);
     };
+  }
+
+  // --- Multi-level Scoped Helpers ---
+  public getArtifactState<T = unknown>(key: string): T | undefined {
+    return this.get<T>(`artifact.${key}`);
+  }
+
+  public setArtifactState<T = unknown>(key: string, value: T): void {
+    this.set(`artifact.${key}`, value);
+  }
+
+  public getNodeState<T = unknown>(nodeId: string, key: string): T | undefined {
+    return this.get<T>(`node.${nodeId}.${key}`);
+  }
+
+  public setNodeState<T = unknown>(nodeId: string, key: string, value: T): void {
+    this.set(`node.${nodeId}.${key}`, value);
+  }
+
+  public getComponentState<T = unknown>(componentId: string, key: string): T | undefined {
+    return this.get<T>(`component.${componentId}.${key}`);
+  }
+
+  public setComponentState<T = unknown>(componentId: string, key: string, value: T): void {
+    this.set(`component.${componentId}.${key}`, value);
+  }
+
+  public getPortState<T = unknown>(portId: string, key: string): T | undefined {
+    return this.get<T>(`port.${portId}.${key}`);
+  }
+
+  public setPortState<T = unknown>(portId: string, key: string, value: T): void {
+    this.set(`port.${portId}.${key}`, value);
   }
 
   public batch(fn: () => void): void {
@@ -126,6 +176,18 @@ export class ReactiveState {
           listener(value, prev);
         } catch (err) {
           console.error(`Error in state listener for key "${key}":`, err);
+        }
+      }
+    }
+
+    for (const [prefix, pListeners] of this.prefixListeners.entries()) {
+      if (key.startsWith(prefix)) {
+        for (const listener of Array.from(pListeners)) {
+          try {
+            listener(key, value, prev);
+          } catch (err) {
+            console.error(`Error in scope listener for prefix "${prefix}":`, err);
+          }
         }
       }
     }

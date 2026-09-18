@@ -3,11 +3,15 @@ import {
   type ArtifactPatch,
   type ArtifactElement,
   type Connection,
+  type MicroComponent,
+  type Port,
+  type StructuredNode,
   validateArtifact
 } from "@interactive-artifact/protocol";
 import { ReactiveState } from "./state.js";
 import { EventBus } from "./events.js";
 import { applyPatchToDefinition } from "./patch.js";
+import { ComponentTree } from "./tree.js";
 
 export interface RendererInstance {
   update(): void;
@@ -29,6 +33,7 @@ export class ArtifactInstance {
   public readonly type: string;
   public readonly state: ReactiveState;
   public readonly events: EventBus;
+  public readonly tree: ComponentTree;
 
   private _definition: ArtifactDefinition;
   private activeRenderers = new Set<RendererInstance>();
@@ -54,6 +59,7 @@ export class ArtifactInstance {
     });
 
     this.events = new EventBus();
+    this.tree = new ComponentTree(this._definition);
 
     // Hook state changes to emit typed state.changed event
     this.state.subscribeAll((key, value, prev) => {
@@ -83,10 +89,31 @@ export class ArtifactInstance {
   }
 
   /**
-   * Retrieves an element by its ID
+   * Retrieves an element or structured node by its ID
    */
   public getElement(elementId: string): ArtifactElement | undefined {
     return this._definition.elements.find(el => el.id === elementId);
+  }
+
+  /**
+   * Retrieves a micro-component by its ID
+   */
+  public getComponent(componentId: string): MicroComponent | undefined {
+    return this.tree.findComponent(componentId);
+  }
+
+  /**
+   * Retrieves a port by ID
+   */
+  public getPort(portId: string, nodeId?: string): Port | undefined {
+    return this.tree.getPort(portId, nodeId);
+  }
+
+  /**
+   * Retrieves all ports on a node
+   */
+  public getPorts(nodeId: string): Port[] {
+    return this.tree.getPorts(nodeId);
   }
 
   /**
@@ -94,11 +121,79 @@ export class ArtifactInstance {
    */
   public applyPatch(patch: ArtifactPatch): void {
     this._definition = applyPatchToDefinition(this._definition, patch, this.events);
+    this.tree.setDefinition(this._definition);
     this.notifyRenderers();
   }
 
   /**
-   * Moves an element to a new coordinate
+   * In-place micro-component update
+   */
+  public updateComponent(componentId: string, changes: Record<string, unknown>, nodeId?: string): void {
+    this.applyPatch({
+      operation: "update_component",
+      componentId,
+      nodeId,
+      changes
+    });
+  }
+
+  /**
+   * In-place micro-component insert
+   */
+  public insertComponent(parentId: string, component: MicroComponent): void {
+    this.applyPatch({
+      operation: "insert_component",
+      parentId,
+      component
+    });
+  }
+
+  /**
+   * In-place micro-component remove
+   */
+  public removeComponent(componentId: string): void {
+    this.applyPatch({
+      operation: "remove_component",
+      componentId
+    });
+  }
+
+  /**
+   * In-place port update
+   */
+  public updatePort(nodeId: string, portId: string, changes: Record<string, unknown>): void {
+    this.applyPatch({
+      operation: "update_port",
+      nodeId,
+      portId,
+      changes
+    });
+  }
+
+  /**
+   * Moves a node explicitly
+   */
+  public moveNode(nodeId: string, position: { x: number; y: number }): void {
+    this.applyPatch({
+      operation: "move_node",
+      nodeId,
+      position
+    });
+  }
+
+  /**
+   * Updates a structured node
+   */
+  public updateNode(nodeId: string, changes: Record<string, unknown>): void {
+    this.applyPatch({
+      operation: "update_node",
+      nodeId,
+      changes
+    });
+  }
+
+  /**
+   * Moves an element to a new coordinate (backward compatible)
    */
   public moveElement(elementId: string, position: { x: number; y: number }): void {
     this.applyPatch({
@@ -109,7 +204,7 @@ export class ArtifactInstance {
   }
 
   /**
-   * Updates an element's attributes
+   * Updates an element's attributes (backward compatible)
    */
   public updateElement(elementId: string, changes: Partial<ArtifactElement>): void {
     this.applyPatch({
@@ -130,7 +225,7 @@ export class ArtifactInstance {
   }
 
   /**
-   * Connects two elements
+   * Connects two elements or ports
    */
   public connect(connection: Connection): void {
     this.applyPatch({
@@ -150,6 +245,32 @@ export class ArtifactInstance {
   }
 
   /**
+   * Multi-level state helpers
+   */
+  public setComponentState(componentId: string, key: string, value: unknown): void {
+    this.state.setComponentState(componentId, key, value);
+    this.events.emit({
+      type: "component.clicked",
+      artifactId: this.id,
+      nodeId: "unknown",
+      componentId,
+      timestamp: Date.now()
+    });
+  }
+
+  public getComponentState<T = unknown>(componentId: string, key: string): T | undefined {
+    return this.state.getComponentState<T>(componentId, key);
+  }
+
+  public setPortState(portId: string, key: string, value: unknown): void {
+    this.state.setPortState(portId, key, value);
+  }
+
+  public getPortState<T = unknown>(portId: string, key: string): T | undefined {
+    return this.state.getPortState<T>(portId, key);
+  }
+
+  /**
    * Selects an element or clears selection
    */
   public selectElement(elementId: string | null): void {
@@ -163,6 +284,15 @@ export class ArtifactInstance {
       selectedIds,
       timestamp: Date.now()
     });
+    if (elementId) {
+      this.events.emit({
+        type: "node.selected",
+        artifactId: this.id,
+        nodeId: elementId,
+        selectedIds: [elementId],
+        timestamp: Date.now()
+      });
+    }
   }
 
   /**

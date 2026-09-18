@@ -31,10 +31,10 @@ export function renderTextElement(
   textEl.setAttribute("x", String(posX));
   textEl.setAttribute("y", String(y + (height ? height / 2 + 5 : 16)));
   textEl.setAttribute("text-anchor", align === "center" ? "middle" : align === "right" ? "end" : "start");
-  textEl.setAttribute("fill", style.color ?? style.fill ?? theme.text);
+  textEl.setAttribute("fill", String((style as any).color ?? style.fill ?? theme.text));
   textEl.setAttribute("font-size", String(style.fontSize ?? 15));
   textEl.setAttribute("font-weight", String(style.fontWeight ?? "500"));
-  textEl.setAttribute("font-family", style.fontFamily ?? "Inter, system-ui, sans-serif");
+  textEl.setAttribute("font-family", String(style.fontFamily ?? "Inter, system-ui, sans-serif"));
   textEl.textContent = text;
 
   g.appendChild(textEl);

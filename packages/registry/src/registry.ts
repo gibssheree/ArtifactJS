@@ -1,11 +1,20 @@
 import type { CapabilityDefinition } from "./capability.js";
 import { resolveCapabilities } from "./resolver.js";
+import { PrimitiveRegistry } from "./primitives.js";
+import { ComponentRegistry } from "./components.js";
 
 /**
- * Registry storing and indexing available artifact capabilities
+ * Registry storing and indexing available artifact capabilities, primitives, and micro-components
  */
 export class ArtifactRegistry {
   private capabilities = new Map<string, CapabilityDefinition>();
+  public readonly primitives: PrimitiveRegistry;
+  public readonly components: ComponentRegistry;
+
+  constructor() {
+    this.primitives = new PrimitiveRegistry();
+    this.components = new ComponentRegistry();
+  }
 
   /**
    * Registers a new capability into the registry

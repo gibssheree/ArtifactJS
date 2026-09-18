@@ -23,6 +23,9 @@ importers:
       '@interactive-artifact/ai':
         specifier: workspace:*
         version: link:../../packages/ai
+      '@interactive-artifact/catalog':
+        specifier: workspace:*
+        version: link:../../packages/artifacts/catalog
       '@interactive-artifact/charts':
         specifier: workspace:*
         version: link:../../packages/artifacts/charts
@@ -75,6 +78,9 @@ importers:
       '@interactive-artifact/ai':
         specifier: workspace:*
         version: link:../../packages/ai
+      '@interactive-artifact/catalog':
+        specifier: workspace:*
+        version: link:../../packages/artifacts/catalog
       '@interactive-artifact/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -127,6 +133,31 @@ importers:
       '@interactive-artifact/registry':
         specifier: workspace:*
         version: link:../registry
+    devDependencies:
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.7
+        version: 3.2.7
+
+  packages/artifacts/catalog:
+    dependencies:
+      '@interactive-artifact/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@interactive-artifact/protocol':
+        specifier: workspace:*
+        version: link:../../protocol
+      '@interactive-artifact/registry':
+        specifier: workspace:*
+        version: link:../../registry
+      '@interactive-artifact/renderer-svg':
+        specifier: workspace:*
+        version: link:../../renderer-svg
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
     devDependencies:
       typescript:
         specifier: ^5.7.3

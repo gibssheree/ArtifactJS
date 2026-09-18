@@ -1,7 +1,9 @@
 import type {
   ArtifactElement,
   AnchorPoint,
-  Connection
+  Connection,
+  Port,
+  StructuredNode
 } from "@interactive-artifact/protocol";
 
 export interface Point {
@@ -18,7 +20,64 @@ export interface ConnectionGeometry {
 }
 
 /**
- * Calculates intersection of line segment (cx, cy) -> (tx, ty) with a rectangle
+ * Calculates the exact point of a port on an element
+ */
+export function calculatePortPoint(
+  element: ArtifactElement,
+  portOrId: string | Port | undefined
+): Point | undefined {
+  if (!portOrId) return undefined;
+
+  const node = element as StructuredNode;
+  const port = typeof portOrId === "string"
+    ? node.ports?.find(p => p.id === portOrId)
+    : portOrId;
+
+  if (!port) return undefined;
+
+  const { x, y } = element.position;
+  const { width, height } = element.size;
+
+  if (typeof port.position === "object" && "x" in port.position && "y" in port.position) {
+    // Relative or absolute offset
+    return {
+      x: x + port.position.x,
+      y: y + port.position.y
+    };
+  }
+
+  // Count ports on the same edge to distribute them evenly
+  const pos = (port.position as string) ?? "auto";
+  const sameEdgePorts = (node.ports ?? []).filter(p => (p.position as string) === pos);
+  const idx = Math.max(0, sameEdgePorts.findIndex(p => p.id === port.id));
+  const total = Math.max(1, sameEdgePorts.length);
+
+  // Offset along the edge: spacing = dimension / (total + 1)
+  switch (pos) {
+    case "left": {
+      const step = height / (total + 1);
+      return { x, y: y + step * (idx + 1) };
+    }
+    case "right": {
+      const step = height / (total + 1);
+      return { x: x + width, y: y + step * (idx + 1) };
+    }
+    case "top": {
+      const step = width / (total + 1);
+      return { x: x + step * (idx + 1), y };
+    }
+    case "bottom": {
+      const step = width / (total + 1);
+      return { x: x + step * (idx + 1), y: y + height };
+    }
+    case "center":
+    default:
+      return { x: x + width / 2, y: y + height / 2 };
+  }
+}
+
+/**
+ * Calculates intersection of line segment (cx, cy) -> (target.x, target.y) with a rectangle
  */
 export function getBoxIntersection(
   rect: { x: number; y: number; width: number; height: number },
@@ -58,13 +117,19 @@ export function getBoxIntersection(
 }
 
 /**
- * Resolves connection point on element given anchor preference
+ * Resolves connection point on element given anchor preference or port
  */
 export function resolveAnchorPoint(
   element: ArtifactElement,
   anchor: AnchorPoint | undefined,
-  otherPoint: Point
+  otherPoint: Point,
+  portId?: string
 ): Point {
+  if (portId) {
+    const pt = calculatePortPoint(element, portId);
+    if (pt) return pt;
+  }
+
   const { x, y } = element.position;
   const { width, height } = element.size;
 
@@ -111,7 +176,7 @@ export function calculateArrowhead(
 }
 
 /**
- * Computes the complete SVG connection geometry and routing between two elements
+ * Computes the complete SVG connection geometry and routing between two elements / ports
  */
 export function calculateConnectionGeometry(
   connection: Connection,
@@ -127,11 +192,17 @@ export function calculateConnectionGeometry(
     y: toEl.position.y + toEl.size.height / 2
   };
 
-  const fromAnchor = typeof connection.from === "object" ? connection.from.anchor : "auto";
-  const toAnchor = typeof connection.to === "object" ? connection.to.anchor : "auto";
+  const fromEndpoint = typeof connection.from === "object" ? connection.from : null;
+  const toEndpoint = typeof connection.to === "object" ? connection.to : null;
 
-  const startPoint = resolveAnchorPoint(fromEl, fromAnchor, toCenter);
-  const endPoint = resolveAnchorPoint(toEl, toAnchor, fromCenter);
+  const fromPortId = fromEndpoint?.portId;
+  const toPortId = toEndpoint?.portId;
+
+  const fromAnchor = fromEndpoint?.anchor ?? "auto";
+  const toAnchor = toEndpoint?.anchor ?? "auto";
+
+  const startPoint = resolveAnchorPoint(fromEl, fromAnchor, toCenter, fromPortId);
+  const endPoint = resolveAnchorPoint(toEl, toAnchor, fromCenter, toPortId);
 
   let path = "";
   const midPoint: Point = {
@@ -144,15 +215,15 @@ export function calculateConnectionGeometry(
   if (connType === "curved") {
     const dx = endPoint.x - startPoint.x;
     const dy = endPoint.y - startPoint.y;
+    // Cubic bezier curving smoothly from start to end
     const cx1 = startPoint.x + dx * 0.5;
     const cy1 = startPoint.y;
     const cx2 = startPoint.x + dx * 0.5;
     const cy2 = endPoint.y;
     path = `M ${startPoint.x} ${startPoint.y} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${endPoint.x} ${endPoint.y}`;
   } else if (connType === "orthogonal") {
-    // Step routing
     const dx = endPoint.x - startPoint.x;
-    if (Math.abs(dx) > 20) {
+    if (Math.abs(dx) > 10) {
       const midX = startPoint.x + dx / 2;
       path = `M ${startPoint.x} ${startPoint.y} L ${midX} ${startPoint.y} L ${midX} ${endPoint.y} L ${endPoint.x} ${endPoint.y}`;
     } else {

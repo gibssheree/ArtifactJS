@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ElementSchema, ElementStyleSchema } from "./elements.js";
+import { ElementSchema, ElementStyleSchema, type ArtifactElement } from "./elements.js";
 
 /**
  * Anchor points on an element bounding box
@@ -15,27 +15,33 @@ export const AnchorPointSchema = z.enum([
 export type AnchorPoint = z.infer<typeof AnchorPointSchema>;
 
 /**
- * Connection endpoint identifier
+ * Connection endpoint identifier referencing a node, port, or anchor
  */
+export const ConnectionEndpointObjectSchema = z.object({
+  nodeId: z.string().optional(),
+  elementId: z.string().optional(),
+  portId: z.string().optional(),
+  anchor: AnchorPointSchema.optional()
+});
+export type ConnectionEndpointObject = z.infer<typeof ConnectionEndpointObjectSchema>;
+
 export const ConnectionEndpointSchema = z.union([
   z.string(),
-  z.object({
-    elementId: z.string(),
-    anchor: AnchorPointSchema.optional().default("auto")
-  })
+  ConnectionEndpointObjectSchema
 ]);
 export type ConnectionEndpoint = z.infer<typeof ConnectionEndpointSchema>;
 
 /**
- * First-class connection between elements
+ * First-class connection between elements or ports
  */
 export const ConnectionSchema = z.object({
   id: z.string().min(1),
   from: ConnectionEndpointSchema,
   to: ConnectionEndpointSchema,
-  type: z.enum(["arrow", "line", "curved", "orthogonal"]).default("arrow"),
+  type: z.enum(["arrow", "line", "curved", "orthogonal", "straight"]).optional().default("arrow"),
   label: z.string().optional(),
   style: ElementStyleSchema.optional(),
+  state: z.record(z.unknown()).optional(),
   metadata: z.record(z.unknown()).optional()
 });
 export type Connection = z.infer<typeof ConnectionSchema>;

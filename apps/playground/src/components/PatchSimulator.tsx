@@ -9,11 +9,10 @@ export interface PatchSimulatorProps {
 
 export const PatchSimulator: React.FC<PatchSimulatorProps> = ({ artifact, onPatchApplied }) => {
   const [customPatchJson, setCustomPatchJson] = useState(`{
-  "operation": "update",
-  "elementId": "api",
+  "operation": "update_component",
+  "componentId": "sec_auth_metric",
   "changes": {
-    "props": { "status": "warning" },
-    "style": { "fill": "#fef3c7", "stroke": "#d97706" }
+    "props": { "label": "Latency p99", "value": "1.8 ms", "delta": "-3.2ms (Optimized)" }
   }
 }`);
 
@@ -23,16 +22,51 @@ export const PatchSimulator: React.FC<PatchSimulatorProps> = ({ artifact, onPatc
 
   const handleApplyPresetPatch = (type: string) => {
     const def = artifact.definition;
-    if (type === "move_down") {
-      const target = def.elements[def.elements.length - 1];
-      if (target) {
-        artifact.applyPatch(PatchBuilder.move(target.id, target.position.x, target.position.y + 60));
+
+    if (type === "update_metric") {
+      // Look for a metric component
+      const metric = artifact.tree.getAllEntities().find(e => e.kind === "component" && (e.entity as any).type === "metric");
+      if (metric) {
+        artifact.updateComponent(metric.id, {
+          props: {
+            label: "Latency p99 (AI Tuned)",
+            value: "1.2 ms",
+            delta: "-65% drop"
+          }
+        });
+        onPatchApplied();
+      } else {
+        alert("No metric micro-component found in current artifact.");
+      }
+    } else if (type === "update_badge") {
+      const firstNode = def.elements[0];
+      if (firstNode) {
+        artifact.updateNode(firstNode.id, {
+          header: {
+            ...(firstNode as any).header,
+            badge: "v4.0 Enterprise",
+            status: "success"
+          }
+        });
         onPatchApplied();
       }
-    } else if (type === "move_right") {
-      const target = def.elements[0];
-      if (target) {
-        artifact.applyPatch(PatchBuilder.move(target.id, target.position.x + 50, target.position.y));
+    } else if (type === "insert_comp") {
+      const firstNode = def.elements[0];
+      if (firstNode) {
+        artifact.insertComponent(firstNode.id, {
+          id: `sec_ai_tag_${Date.now().toString().slice(-4)}`,
+          type: "badge",
+          props: { label: "AI Auto-Scaling Active", variant: "success" }
+        });
+        onPatchApplied();
+      }
+    } else if (type === "move_node") {
+      const firstNode = def.elements[0];
+      if (firstNode) {
+        artifact.moveNode(firstNode.id, {
+          x: firstNode.position.x + 30,
+          y: firstNode.position.y + 20
+        });
         onPatchApplied();
       }
     } else if (type === "theme_toggle") {
@@ -43,43 +77,6 @@ export const PatchSimulator: React.FC<PatchSimulatorProps> = ({ artifact, onPatc
         changes: { theme: next }
       });
       artifact.state.set("theme", next);
-      onPatchApplied();
-    } else if (type === "add_service") {
-      const newId = `service_${Date.now().toString().slice(-4)}`;
-      artifact.applyPatch(
-        PatchBuilder.insert({
-          id: newId,
-          type: "node",
-          position: { x: 370, y: 340 },
-          size: { width: 170, height: 75 },
-          props: {
-            label: "Auth Worker",
-            subLabel: "Background Job",
-            shape: "rectangle",
-            status: "active"
-          },
-          style: {
-            fill: "#f3e8ff",
-            stroke: "#9333ea",
-            strokeWidth: 2,
-            radius: 12
-          }
-        })
-      );
-      // Connect to first element if possible
-      const firstEl = def.elements[0];
-      if (firstEl) {
-        artifact.applyPatch(
-          PatchBuilder.connect({
-            id: `c_${firstEl.id}_${newId}`,
-            from: firstEl.id,
-            to: newId,
-            type: "arrow",
-            label: "JWT Verify",
-            style: { stroke: "#9333ea", strokeWidth: 2 }
-          })
-        );
-      }
       onPatchApplied();
     }
   };
@@ -95,63 +92,63 @@ export const PatchSimulator: React.FC<PatchSimulatorProps> = ({ artifact, onPatc
   };
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      <div style={{
-        padding: "8px 12px",
-        borderBottom: "1px solid #1e293b",
-        background: "#0f172a",
-        fontSize: 12,
-        fontWeight: 600,
-        color: "#94a3b8"
-      }}>
-        Simulate Conversational AI Incremental Patches
+    <div className="h-full flex flex-col select-none text-xs">
+      <div className="p-3 border-b border-slate-800 bg-slate-900/90 font-semibold text-slate-300 flex justify-between items-center">
+        <span>Simulate AI Incremental Micro-Patches</span>
+        <span className="text-[10px] text-emerald-400 font-mono">In-Place Mutation</span>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", gap: 16 }}>
-        {/* Preset quick patch buttons */}
-        <div style={{ width: 280, display: "flex", flexDirection: "column", gap: 8 }}>
-          <div style={{ fontSize: 12, fontWeight: 500, color: "#cbd5e1" }}>Quick Action Patches:</div>
-          <button
-            onClick={() => handleApplyPresetPatch("move_down")}
-            style={{ background: "#1e293b", color: "#38bdf8", padding: "8px 12px", textAlign: "left" }}
-          >
-            🤖 "Move bottom node down by 60px"
-          </button>
-          <button
-            onClick={() => handleApplyPresetPatch("move_right")}
-            style={{ background: "#1e293b", color: "#38bdf8", padding: "8px 12px", textAlign: "left" }}
-          >
-            🤖 "Shift first node right by 50px"
-          </button>
-          <button
-            onClick={() => handleApplyPresetPatch("add_service")}
-            style={{ background: "#1e293b", color: "#34d399", padding: "8px 12px", textAlign: "left" }}
-          >
-            🤖 "Add Auth Worker node + connection"
-          </button>
-          <button
-            onClick={() => handleApplyPresetPatch("theme_toggle")}
-            style={{ background: "#1e293b", color: "#f59e0b", padding: "8px 12px", textAlign: "left" }}
-          >
-            🤖 "Toggle Canvas Theme (Dark / Light)"
-          </button>
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div>
+          <div className="text-[11px] font-medium text-slate-400 mb-2">Predefined AI Turn Patches:</div>
+          <div className="grid grid-cols-1 gap-2">
+            <button
+              onClick={() => handleApplyPresetPatch("update_metric")}
+              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-sky-400 rounded text-left border border-slate-700/60 font-medium transition-colors"
+            >
+              ?? "Patch Latency metric to 1.2ms (-65%)" (update_component)
+            </button>
+            <button
+              onClick={() => handleApplyPresetPatch("update_badge")}
+              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded text-left border border-slate-700/60 font-medium transition-colors"
+            >
+              ?? "Upgrade Gateway badge to v4.0 Enterprise" (update_node)
+            </button>
+            <button
+              onClick={() => handleApplyPresetPatch("insert_comp")}
+              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded text-left border border-slate-700/60 font-medium transition-colors"
+            >
+              ?? "Inject AI Auto-Scaling badge component" (insert_component)
+            </button>
+            <button
+              onClick={() => handleApplyPresetPatch("move_node")}
+              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-indigo-400 rounded text-left border border-slate-700/60 font-medium transition-colors"
+            >
+              ?? "Nudge first node (+30px, +20px)" (move_node)
+            </button>
+            <button
+              onClick={() => handleApplyPresetPatch("theme_toggle")}
+              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-purple-400 rounded text-left border border-slate-700/60 font-medium transition-colors"
+            >
+              ?? "Switch canvas theme (Dark / Light)" (update_canvas)
+            </button>
+          </div>
         </div>
 
-        {/* Custom patch JSON input */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: "#cbd5e1" }}>Custom Patch Instruction:</span>
+        <div className="flex-1 flex flex-col space-y-2 pt-2 border-t border-slate-800">
+          <div className="flex justify-between items-center">
+            <span className="text-[11px] font-medium text-slate-400">Custom Incremental Patch JSON:</span>
             <button
               onClick={handleApplyCustom}
-              style={{ background: "#2563eb", color: "#ffffff", padding: "4px 12px" }}
+              className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-medium transition-colors"
             >
-              Apply Patch
+              Dispatch Patch
             </button>
           </div>
           <textarea
             value={customPatchJson}
-            onChange={(e) => setCustomPatchJson(e.target.value)}
-            style={{ flex: 1, minHeight: 90 }}
+            onChange={e => setCustomPatchJson(e.target.value)}
+            className="w-full h-36 bg-slate-950 border border-slate-800 rounded p-2.5 font-mono text-[11px] text-slate-200 focus:outline-none focus:border-blue-500"
           />
         </div>
       </div>

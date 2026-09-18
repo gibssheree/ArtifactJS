@@ -17,7 +17,6 @@ export class SVGRenderer implements ArtifactRenderer {
   public readonly id = "svg";
 
   public canRender(artifact: ArtifactInstance): boolean {
-    // SVGRenderer can render any 2D artifact type
     return true;
   }
 
@@ -139,8 +138,8 @@ export class SVGRenderer implements ArtifactRenderer {
       // Render connections
       connectionLayer.innerHTML = "";
       for (const conn of def.connections) {
-        const fromId = typeof conn.from === "string" ? conn.from : conn.from.elementId;
-        const toId = typeof conn.to === "string" ? conn.to : conn.to.elementId;
+        const fromId = typeof conn.from === "string" ? conn.from : (conn.from.nodeId || (conn.from as any).elementId || "");
+        const toId = typeof conn.to === "string" ? conn.to : (conn.to.nodeId || (conn.to as any).elementId || "");
 
         const fromEl = elementMap.get(fromId);
         const toEl = elementMap.get(toId);

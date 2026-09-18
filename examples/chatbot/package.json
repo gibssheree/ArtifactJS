@@ -15,6 +15,7 @@
     "@interactive-artifact/react": "workspace:*",
     "@interactive-artifact/ai": "workspace:*",
     "@interactive-artifact/flowchart": "workspace:*",
+    "@interactive-artifact/catalog": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

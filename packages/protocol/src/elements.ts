@@ -1,4 +1,37 @@
 import { z } from "zod";
+import {
+  PositionSchema,
+  SizeSchema,
+  PointSchema,
+  ElementStyleSchema,
+  type Position,
+  type Size,
+  type Point,
+  type ElementStyle
+} from "./common.js";
+import {
+  type NodeHeader,
+  type NodeBody,
+  type NodeFooter,
+  type Port,
+  type MicroComponent,
+  NodeHeaderSchema,
+  NodeBodySchema,
+  NodeFooterSchema,
+  PortSchema,
+  MicroComponentSchema
+} from "./components.js";
+
+export {
+  PositionSchema,
+  SizeSchema,
+  PointSchema,
+  ElementStyleSchema,
+  type Position,
+  type Size,
+  type Point,
+  type ElementStyle
+};
 
 /**
  * Supported core element primitive types
@@ -26,54 +59,27 @@ export const ElementTypeSchema = z.enum([
 export type ElementType = z.infer<typeof ElementTypeSchema>;
 
 /**
- * 2D coordinate position
+ * Comprehensive ArtifactElement interface supporting both simple primitives and structured nodes
  */
-export const PositionSchema = z.object({
-  x: z.number(),
-  y: z.number()
-});
-export type Position = z.infer<typeof PositionSchema>;
-
-/**
- * 2D dimensions
- */
-export const SizeSchema = z.object({
-  width: z.number().min(0),
-  height: z.number().min(0)
-});
-export type Size = z.infer<typeof SizeSchema>;
-
-/**
- * Generic point in 2D space
- */
-export const PointSchema = z.object({
-  x: z.number(),
-  y: z.number()
-});
-export type Point = z.infer<typeof PointSchema>;
-
-/**
- * Styling attributes for visual presentation
- */
-export const ElementStyleSchema = z.object({
-  fill: z.string().optional(),
-  stroke: z.string().optional(),
-  strokeWidth: z.number().min(0).optional(),
-  strokeDasharray: z.string().optional(),
-  radius: z.number().min(0).optional(),
-  opacity: z.number().min(0).max(1).optional(),
-  roughness: z.number().min(0).max(5).optional(), // for sketch / excalidraw mode
-  bowing: z.number().optional(),
-  color: z.string().optional(),
-  textColor: z.string().optional(),
-  fontSize: z.number().min(6).optional(),
-  fontFamily: z.string().optional(),
-  fontWeight: z.union([z.string(), z.number()]).optional(),
-  textAlign: z.enum(["left", "center", "right"]).optional(),
-  textBaseline: z.enum(["top", "middle", "bottom"]).optional(),
-  shadow: z.boolean().optional()
-}).passthrough();
-export type ElementStyle = z.infer<typeof ElementStyleSchema>;
+export interface ArtifactElement {
+  id: string;
+  type: string;
+  position: Position;
+  size: Size;
+  props?: Record<string, unknown>;
+  style?: ElementStyle;
+  metadata?: Record<string, unknown>;
+  // First-class structured node regions
+  header?: NodeHeader;
+  body?: NodeBody;
+  footer?: NodeFooter;
+  sections?: MicroComponent[];
+  ports?: Port[];
+  anchors?: Record<string, string>;
+  actions?: MicroComponent[];
+  state?: Record<string, unknown>;
+  children?: MicroComponent[];
+}
 
 /**
  * Base element schema shared across all element kinds
@@ -85,8 +91,16 @@ export const BaseElementSchema = z.object({
   size: SizeSchema,
   props: z.record(z.unknown()).optional(),
   style: ElementStyleSchema.optional(),
-  metadata: z.record(z.unknown()).optional()
+  metadata: z.record(z.unknown()).optional(),
+  header: NodeHeaderSchema.optional(),
+  body: NodeBodySchema.optional(),
+  footer: NodeFooterSchema.optional(),
+  sections: z.array(MicroComponentSchema).optional(),
+  ports: z.array(PortSchema).optional(),
+  anchors: z.record(z.string()).optional(),
+  actions: z.array(MicroComponentSchema).optional(),
+  state: z.record(z.unknown()).optional(),
+  children: z.array(MicroComponentSchema).optional()
 });
 
-export const ElementSchema = BaseElementSchema;
-export type ArtifactElement = z.infer<typeof ElementSchema>;
+export const ElementSchema = BaseElementSchema as unknown as z.ZodType<ArtifactElement>;

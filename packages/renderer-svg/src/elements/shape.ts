@@ -103,10 +103,14 @@ export function renderShapeElement(
 
       case "line": {
         const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", String(x));
-        line.setAttribute("y1", String(y));
-        line.setAttribute("x2", String(x + width));
-        line.setAttribute("y2", String(y + height));
+        const x1 = element.props?.x1 !== undefined ? Number(element.props.x1) : x;
+        const y1 = element.props?.y1 !== undefined ? Number(element.props.y1) : y;
+        const x2 = element.props?.x2 !== undefined ? Number(element.props.x2) : x + width;
+        const y2 = element.props?.y2 !== undefined ? Number(element.props.y2) : y + height;
+        line.setAttribute("x1", String(x1));
+        line.setAttribute("y1", String(y1));
+        line.setAttribute("x2", String(x2));
+        line.setAttribute("y2", String(y2));
         line.setAttribute("stroke", stroke);
         line.setAttribute("stroke-width", strokeWidth);
         line.setAttribute("opacity", opacity);

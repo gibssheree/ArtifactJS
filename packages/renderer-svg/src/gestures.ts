@@ -41,8 +41,48 @@ export function attachGestures(
   const handleMouseDown = (e: MouseEvent) => {
     if (!interactive) return;
 
-    // Check if target is inside an element
     const target = e.target as SVGElement | null;
+
+    // Check if clicked directly on a port socket
+    const portGroup = target?.closest("[data-port-id]") as SVGElement | null;
+    if (portGroup) {
+      const portId = portGroup.getAttribute("data-port-id")!;
+      const nodeId = portGroup.getAttribute("data-node-id")!;
+      e.stopPropagation();
+
+      artifact.events.emit({
+        type: "port.clicked",
+        artifactId: artifact.id,
+        nodeId,
+        portId,
+        timestamp: Date.now()
+      });
+      return;
+    }
+
+    // Check if clicked directly on a micro-component
+    const compGroup = target?.closest("[data-component-id]") as SVGElement | null;
+    if (compGroup) {
+      const compId = compGroup.getAttribute("data-component-id")!;
+      const nodeParent = compGroup.closest("[data-node-id]") as SVGElement | null;
+      const nodeId = nodeParent?.getAttribute("data-node-id") ?? "unknown";
+
+      artifact.events.emit({
+        type: "component.clicked",
+        artifactId: artifact.id,
+        nodeId,
+        componentId: compId,
+        timestamp: Date.now()
+      });
+
+      // If button or interactive component, don't drag node
+      if (compGroup.classList.contains("cursor-pointer") && !enableDrag) {
+        e.stopPropagation();
+        return;
+      }
+    }
+
+    // Check if target is inside an element / node
     const elementGroup = target?.closest("[data-element-id]") as SVGElement | null;
 
     if (elementGroup && enableDrag) {
@@ -54,6 +94,14 @@ export function attachGestures(
         if (enableSelection) {
           artifact.selectElement(elementId);
         }
+
+        artifact.events.emit({
+          type: "node.clicked",
+          artifactId: artifact.id,
+          nodeId: elementId,
+          position: { ...el.position },
+          timestamp: Date.now()
+        });
 
         isDraggingElement = true;
         dragElementId = elementId;
@@ -111,6 +159,14 @@ export function attachGestures(
           type: "element.moved",
           artifactId: artifact.id,
           elementId: dragElementId,
+          position: { ...el.position },
+          previousPosition: initialElementPos,
+          timestamp: Date.now()
+        });
+        artifact.events.emit({
+          type: "node.moved",
+          artifactId: artifact.id,
+          nodeId: dragElementId,
           position: { ...el.position },
           previousPosition: initialElementPos,
           timestamp: Date.now()
