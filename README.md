@@ -15,49 +15,49 @@ The long-term vision of this platform is to support **10,000+ interactive capabi
 The AI describes what it wants declaratively. The runtime validates the protocol, maintains fine-grained reactive state, dispatches user interaction events back to the conversation, and determines how to render the artifact.
 
 ```text
-               ┌──────────────────────────────┐
-               │       AI Model / Agent       │
-               └──────────────┬───────────────┘
+              ┌────────────────────────────────┐
+              │        AI Model / Agent        │
+              └───────────────┬────────────────┘
                               │
                     Declarative JSON DSL
                               │
                               ▼
-               ┌──────────────────────────────┐
-               │    Artifact Protocol (v1.0)  │
-               │   - Zod Schema Validation    │
-               │   - Security Sanitization    │
-               │   - Incremental Patch DSL    │
-               └──────────────┬───────────────┘
+              ┌────────────────────────────────┐
+              │     Artifact Protocol (v1.0)   │
+              │    - Zod Schema Validation     │
+              │    - Security Sanitization     │
+              │    - Incremental Patch DSL     │
+              └───────────────┬────────────────┘
                               │
                               ▼
-               ┌──────────────────────────────┐
-               │     Capability Registry      │
-               │   - Semantic/Keyword Search  │
-               │   - Modular Plugins          │
-               └──────────────┬───────────────┘
+              ┌────────────────────────────────┐
+              │      Capability Registry       │
+              │    - Semantic/Keyword Search   │
+              │    - Modular Plugins           │
+              └───────────────┬────────────────┘
                               │
                               ▼
-               ┌──────────────────────────────┐
-               │       Artifact Runtime       │
-               │   - Reactive State Store     │
-               │   - Event Bus                │
-               │   - In-Place Patch Engine    │
-               │   - Serialization            │
-               └──────────────┬───────────────┘
+              ┌────────────────────────────────┐
+              │        Artifact Runtime        │
+              │    - Reactive State Store      │
+              │    - Event Bus                 │
+              │    - In-Place Patch Engine     │
+              │    - Serialization             │
+              └───────────────┬────────────────┘
                               │
                               ▼
-               ┌──────────────────────────────┐
-               │           Renderer           │
-               │   - SVG (Crisp + Sketchy)    │
-               │   - Connection Path Solver   │
-               │   - Gestures (Pan, Zoom, Drag│
-               └──────────────┬───────────────┘
+              ┌────────────────────────────────┐
+              │            Renderer            │
+              │    - SVG (Crisp + Sketchy)     │
+              │    - Connection Path Solver    │
+              │    - Gestures (Pan, Zoom, Drag)│
+              └───────────────┬────────────────┘
                               │
                               ▼
-               ┌──────────────────────────────┐
-               │     Interactive Artifact     │
-               │      (Live in Conversation)  │
-               └──────────────────────────────┘
+              ┌────────────────────────────────┐
+              │      Interactive Artifact      │
+              │       (Live in Conversation)   │
+              └────────────────────────────────┘
 ```
 
 ---
